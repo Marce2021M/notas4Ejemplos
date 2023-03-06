@@ -8,7 +8,7 @@ library(R2jags)
 
 # set the working directory
 
-setwd("/home/rstudio/notas2Ejemplos")
+setwd("/home/rstudio/notas4Ejemplos")
 ```
 
 ## primero trabajamos con jaggs
@@ -54,10 +54,10 @@ ej5a.sim<-jags(data,inits,parsa,model.file="Ej5a.txt",
               n.iter=50000,n.chains=2,n.burnin=5000,n.thin=1)
 ej5b.sim<-jags(data,inits,parsbc,model.file="Ej5b.txt",
                n.iter=50000,n.chains=2,n.burnin=5000,n.thin=1)
-ej5c.sim<-jags(data,inits,parasbc,model.file="Ej5c.txt",
-               n.iter=50000,n.chains=2,n.burnin=5000,n.thin=1)
+ej5c.sim<-jags(data,inits,parsbc,model.file="Ej5c.txt",
+               n.iter=10000,n.chains=2,n.burnin=5000,n.thin=1)
 ej5d.sim<-jags(data2,inits2,parsd,model.file="Ej5d.txt",
-               n.iter=50000,n.chains=2,n.burnin=5000,n.thin=1)
+               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=5)
 
 
 ```
@@ -65,7 +65,7 @@ ej5d.sim<-jags(data2,inits2,parsd,model.file="Ej5d.txt",
 ### verificamos convergencia
 ```{r}
 #-Monitoring chain-
-ej5.sim<-ej5a.sim
+ej5.sim<-ej5d.sim
 
 #Traza de la cadena
 traceplot(ej5.sim)
@@ -73,7 +73,7 @@ traceplot(ej5.sim)
 #Cadena
 
 #OpenBUGS
-out<-ej5.sim$sims.list
+#out<-ej5.sim$sims.list
 
 #JAGS
 out<-ej5.sim$BUGSoutput$sims.list
@@ -85,13 +85,13 @@ plot(z)
 #Multiples cadenas
 
 #OpenBUGS
-out.a<-ej5.sim$sims.array
+#out.a<-ej5.sim$sims.array
 
 #JAGS
 out.a<-ej5.sim$BUGSoutput$sims.array
 
-z1<-out.a[,1,1]
-z2<-out.a[,2,1]
+z1<-out.a[,1,2]
+z2<-out.a[,2,2]
 par(mfrow=c(3,2))
 plot(z1,type="l",col="grey50")
 lines(z2,col="firebrick2")
@@ -108,7 +108,7 @@ acf(z2)
 
 #Resumen (estimadores)
 #OpenBUGS
-out.sum<-ej5.sim$summary
+#out.sum<-ej5.sim$summary
 
 #JAGS
 out.sum<-ej5.sim$BUGSoutput$summary
