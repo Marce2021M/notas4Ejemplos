@@ -1,0 +1,226 @@
+# First we are gonna load the packages
+
+```{r}
+# Load necessary packages
+library(rstan)
+library(coda)
+library(R2jags)
+
+# set the working directory
+
+setwd("/home/rstudio/notas2Ejemplos")
+```
+
+## primero lo haremos en jaggs
+
+```{r}
+#--- Ejemplo 3.5---
+#-Lectura de datos-
+precio<-read.csv("http://gente.itam.mx/lnieto/index_archivos/precio.csv")
+anticipacion<-read.csv("http://gente.itam.mx/lnieto/index_archivos/anticipacion.csv")
+precio[,-1]<-as.matrix(precio[,-1])
+anticipacion[,-1]<-as.matrix(anticipacion[,-1])
+n<-dim(precio)[1]
+m<-precio$num
+y<-as.matrix(precio[,2:11])
+x<-as.matrix(anticipacion[,2:11])
+dia<-precio$dia
+mes<-precio$mes
+puente<-precio$puente+1
+ano<-precio$ano-2016
+pp<-m
+ap<-m
+for (i in 1:n){
+  pp[i]<-mean(y[i,1:m[i]])
+  ap[i]<-mean(x[i,1:m[i]])
+}
+
+#-Graficas-
+
+#series de tiempo de precios
+y1<-y[mes==1 & ano==1,]
+ymin<-min(y1,na.rm=TRUE)
+ymax<-max(y1,na.rm=TRUE)
+xmax<-max(m[1:10])
+plot(1:m[1],y1[1,1:m[1]],type="l",xlim=c(1,xmax),ylim=c(ymin,ymax),xlab="reserva",ylab="precio")
+for (i in 2:10){
+  lines(1:m[i],y1[i,1:m[i]],col=i)
+}
+title("Enero de 2017")
+#series de tiempo de precios (anticipacion)
+y1<-y[mes==1 & ano==1,]
+x1<-x[mes==1 & ano==1,]
+ymin<-min(y1,na.rm=TRUE)
+ymax<-max(y1,na.rm=TRUE)
+xmax<-max(x1[1:10,],na.rm=TRUE)
+plot(x1[1,1:m[1]],y1[1,1:m[1]],xlim=c(0,xmax),ylim=c(ymin,ymax),xlab="anticipacion",ylab="precio",pch=19)
+for (i in 2:10){
+  points(x1[i,1:m[i]],y1[i,1:m[i]],col=i,pch=19)
+}
+title("Enero de 2017")
+#anticipacion vs precio
+plot(x,y,xlab="anticipacion",ylab="precio")
+#boxplots de pp (precio promedio)
+boxplot(pp~dia,main="precio prom. por dia")
+boxplot(pp~mes,main="precio prom. por mes")
+boxplot(pp~ano,main="precio prom. por ano")
+boxplot(pp~puente,main="precio prom. por tipo")
+
+#-Definiendo datos-
+data<-list("n"=n,"y"=y/1000,"x"=x,"m"=m,"dia"=dia,"mes"=mes,"puente"=puente,"ano"=ano)
+
+#-Definiendo inits-
+inits<-function(){list(alpha=0,nu=0,beta=rep(0,n),gama=rep(0,7),delta=rep(0,12),epsilon=rep(0,3),theta=rep(0,2),tau=rep(1,n))}
+
+#-Seleccionando parametros a monitorear-
+parameters<-c("alpha.est","nu","beta.est","gama.est","delta.est","epsilon.est","theta.est","tau")
+
+#-Corrida de codigo-
+#OpenBUGS
+mod35.sim<-bugs(data,inits,parameters,model.file="Ej35.txt",
+               n.iter=1000,n.chains=2,n.burnin=100,n.thin=1)
+#JAGS
+mod35.sim<-jags(data,inits,parameters,model.file="Ej35.txt",
+              n.iter=1000,n.chains=2,n.burnin=100,n.thin=1)
+
+#-Monitoreando la cadena-
+
+#Traza de la cadena
+#traceplot(mod35.sim)
+
+#Cadena
+
+#OpenBUGS
+out<-mod35.sim$sims.list
+#JAGS
+out<-mod35.sim$BUGSoutput$sims.list
+
+#Multiples cadenas
+
+#OpenBUGS
+out.a<-mod35.sim$sims.array
+
+#JAGS
+out.a<-mod35.sim$BUGSoutput$sims.array
+
+z1<-out.a[,1,1]
+z2<-out.a[,2,1]
+par(mfrow=c(3,2))
+plot(z1,type="l",col="grey50")
+lines(z2,col="firebrick2")
+y1<-cumsum(z1)/(1:length(z1))
+y2<-cumsum(z2)/(1:length(z2))
+ymin<-min(y1,y2)
+ymax<-max(y1,y2)
+plot(y1,type="l",col="grey50",ylim=c(ymin,ymax))
+lines(y2,col="firebrick2",ylim=c(ymin,ymax))
+hist(z1,freq=FALSE,col="grey50")
+hist(z2,freq=FALSE,col="firebrick2")
+acf(z1)
+acf(z2)
+
+#Resumen (estimadores)
+#OpenBUGS
+out.sum<-mod35.sim$summary
+#JAGS
+out.sum<-mod35.sim$BUGSoutput$summary
+#
+head(out.sum[,c(1,3,7)])
+write.csv(head(out.sum[,c(1,3,7)]),file="pestim.csv")
+
+par(mfrow=c(1,1))
+
+#nu
+out.nu<-out.sum[grep("nu",rownames(out.sum)),]
+out.est<-out.nu
+k<-1
+print(out.est[c(1,3,7)])
+ymin<-min(out.est[c(1,3,7)])
+ymax<-max(out.est[c(1,3,7)])
+plot(1:k,out.est[1],xlab="index",ylab="",ylim=c(ymin,ymax))
+segments(1:k,out.est[3],1:k,out.est[7])
+abline(h=0,col="grey70")
+title("Precio: efecto anticipacion")
+
+#beta
+out.beta<-out.sum[grep("beta",rownames(out.sum)),]
+out.est<-out.beta
+k<-n
+print(out.est[,c(1,3,7)])
+ymin<-min(out.est[,c(1,3,7)])
+ymax<-max(out.est[,c(1,3,7)])
+plot(1:k,out.est[,1],xlab="index",ylab="",ylim=c(ymin,ymax))
+segments(1:k,out.est[,3],1:k,out.est[,7])
+abline(h=0,col="grey70")
+title("Precio: efecto diario")
+
+#gama
+out.gama<-out.sum[grep("gama",rownames(out.sum)),]
+out.est<-out.gama
+k<-7
+print(out.est[,c(1,3,7)])
+ymin<-min(out.est[,c(1,3,7)])
+ymax<-max(out.est[,c(1,3,7)])
+plot(1:k,out.est[,1],xlab="dia",ylab="",ylim=c(ymin,ymax))
+segments(1:k,out.est[,3],1:k,out.est[,7])
+abline(h=0,col="grey70")
+title("Precio: efecto dia de la semana")
+
+#delta
+out.delta<-out.sum[grep("delta",rownames(out.sum)),]
+out.est<-out.delta
+k<-12
+print(out.est[,c(1,3,7)])
+ymin<-min(out.est[,c(1,3,7)])
+ymax<-max(out.est[,c(1,3,7)])
+plot(1:k,out.est[,1],xlab="mes",ylab="",ylim=c(ymin,ymax))
+segments(1:k,out.est[,3],1:k,out.est[,7])
+abline(h=0,col="grey70")
+title("Precio: efecto mensual")
+
+#epsilon
+out.epsilon<-out.sum[grep("epsilon",rownames(out.sum)),]
+out.est<-out.epsilon
+k<-3
+print(out.est[,c(1,3,7)])
+ymin<-min(out.est[,c(1,3,7)])
+ymax<-max(out.est[,c(1,3,7)])
+plot((1:k)+2016,out.est[,1],xlab="ano",ylab="",ylim=c(ymin,ymax))
+segments((1:k)+2016,out.est[,3],(1:k)+2016,out.est[,7])
+abline(h=0,col="grey70")
+title("Precio: efecto anual")
+
+#theta
+out.theta<-out.sum[grep("theta",rownames(out.sum)),]
+out.est<-out.theta
+k<-2
+print(out.est[,c(1,3,7)])
+ymin<-min(out.est[,c(1,3,7)])
+ymax<-max(out.est[,c(1,3,7)])
+plot(1:k,out.est[,1],xlab="puente (no - si)",ylab="",ylim=c(ymin,ymax))
+segments(1:k,out.est[,3],1:k,out.est[,7])
+abline(h=0,col="grey70")
+title("Precio: efecto puente")
+
+#tau
+out.tau<-out.sum[grep("tau",rownames(out.sum)),]
+out.est<-out.tau
+k<-n
+print(out.est[,c(1,3,7)])
+ymin<-min(out.est[,c(1,3,7)])
+ymax<-max(out.est[,c(1,3,7)])
+plot(1:k,out.est[,1],xlab="index- tau",ylab="",ylim=c(ymin,ymax))
+segments(1:k,out.est[,3],1:k,out.est[,7])
+abline(h=0,col="grey70")
+title("Precio: precisiones diarias")
+
+#DIC
+#OpenBUGS
+out.dic<-mod1.sim$DIC
+#JAGS
+out.dic<-mod1.sim$BUGSoutput$DIC
+#
+print(out.dic)
+
+
+```
