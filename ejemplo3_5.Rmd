@@ -8,7 +8,7 @@ library(R2jags)
 
 # set the working directory
 
-setwd("/home/rstudio/notas2Ejemplos")
+setwd("/home/rstudio/notas4Ejemplos")
 ```
 
 ## primero lo haremos en jaggs
