@@ -8,7 +8,7 @@ library(R2jags)
 
 # set the working directory
 
-setwd("/home/rstudio/notas2Ejemplos")
+setwd("/home/rstudio/notas4Ejemplos")
 ```
 
 ## primero trabajamos con jaggs
@@ -48,22 +48,22 @@ parscd<-c("tau.b","yf1","mu")
 
 #-Running code-
 #OpenBUGS
-ej6a1.sim<-bugs(data,initsa1,parsa1,model.file="Ej6a1.txt",
-               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
-ej6a2.sim<-bugs(data,initsa2,parsa2,model.file="Ej6a2.txt",
-                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
-ej6a3.sim<-bugs(data3,initsa3,parsa3,model.file="Ej6a3.txt",
-                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
-ej6b1.sim<-bugs(data,initsb1,parsb1,model.file="Ej6b1.txt",
-               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
-ej6b2.sim<-bugs(data,initsb2,parsb2,model.file="Ej6b2.txt",
-                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
-ej6b3.sim<-bugs(data3,initsb3,parsb3,model.file="Ej6b3.txt",
-                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
-ej6c.sim<-bugs(data,initsc,parscd,model.file="Ej6c.txt",
-               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
-ej6d.sim<-bugs(data,initsd,parscd,model.file="Ej6d.txt",
-               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6a1.sim<-bugs(data,initsa1,parsa1,model.file="Ej6a1.txt",
+#               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6a2.sim<-bugs(data,initsa2,parsa2,model.file="Ej6a2.txt",
+#                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6a3.sim<-bugs(data3,initsa3,parsa3,model.file="Ej6a3.txt",
+#                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6b1.sim<-bugs(data,initsb1,parsb1,model.file="Ej6b1.txt",
+#               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6b2.sim<-bugs(data,initsb2,parsb2,model.file="Ej6b2.txt",
+#                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6b3.sim<-bugs(data3,initsb3,parsb3,model.file="Ej6b3.txt",
+#                n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6c.sim<-bugs(data,initsc,parscd,model.file="Ej6c.txt",
+#               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
+#ej6d.sim<-bugs(data,initsd,parscd,model.file="Ej6d.txt",
+#               n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
 #JAGS
 ej6a1.sim<-jags(data,initsa1,parsa1,model.file="Ej6a1.txt",
                 n.iter=10000,n.chains=2,n.burnin=1000,n.thin=2)
@@ -96,7 +96,7 @@ traceplot(ej6.sim)
 #Cadena
 
 #OpenBUGS
-out<-ej6.sim$sims.list
+#out<-ej6.sim$sims.list
 
 #JAGS
 out<-ej6.sim$BUGSoutput$sims.list
@@ -108,7 +108,7 @@ plot(z)
 #Multiples cadenas
 
 #OpenBUGS
-out.a<-ej6.sim$sims.array
+#out.a<-ej6.sim$sims.array
 
 #JAGS
 out.a<-ej6.sim$BUGSoutput$sims.array
@@ -171,6 +171,8 @@ plot(desastres,type="l",col="grey80")
 lines(desastres[,1],out.mu[,1],lwd=2,col=2)
 lines(desastres[,1],out.mu[,3],lty=2,col=2)
 lines(desastres[,1],out.mu[,7],lty=2,col=2)
+
+#PONERLE MEDIANAS O ACTUALIZAR CÓDIGO
 
 ```
 
